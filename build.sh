@@ -20,12 +20,20 @@ MEMORY="GPU_MEM = \"16\""
 #Add wifi support
 DISTRO_F="DISTRO_FEATURES:append = \"wifi\""
 #add firmware support 
-IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant\""
+IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools\""
 
 #Licence
 LICENCE="LICENSE_FLAGS_ACCEPTED  = \"commercial\""
 
 IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh\""
+
+#I2C
+MODULE_I2C="ENABLE_I2C = \"1\""
+
+AUTOLOAD_I2C="KERNEL_MODULE_AUTOLOAD:rpi += \"i2c-dev i2c-bcm2708\""
+
+#Extra packages
+CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config\""
 
 cat conf/local.conf | grep "${CONFLINE}" > /dev/null
 local_conf_info=$?
@@ -48,6 +56,14 @@ local_licn_info=$?
 cat conf/local.conf | grep "${IMAGE_F}" > /dev/null
 local_imgf_info=$?
 
+cat conf/local.conf | grep "${MODULE_I2C}" > /dev/null
+local_i2c_info=$?
+
+cat conf/local.conf | grep "${AUTOLOAD_I2C}" > /dev/null
+local_i2c_autoload_info=$?
+
+cat conf/local.conf | grep "${CORE_IM_ADD}" > /dev/null
+local_coreimadd_info=$?
 
 if [ $local_conf_info -ne 0 ];then
 	echo "Append ${CONFLINE} in the local.conf file"
@@ -99,6 +115,26 @@ else
 	echo "${IMAGE_F} already exists in the local.conf file"
 fi
 
+if [ $local_i2c_info -ne 0 ];then
+        echo "Append ${MODULE_I2C} in the local.conf file"
+        echo ${MODULE_I2C} >> conf/local.conf
+else
+        echo "${MODULE_I2C} already exists in the local.conf file"
+fi
+
+if [ $local_i2c_autoload_info -ne 0 ];then
+        echo "Append ${AUTOLOAD_I2C} in the local.conf file"
+        echo ${AUTOLOAD_I2C} >> conf/local.conf
+else
+        echo "${AUTOLOAD_I2C} already exists in the local.conf file"
+fi
+
+if [ $local_coreimadd_info -ne 0 ];then
+        echo "Append ${CORE_IM_ADD} in the local.conf file"
+        echo ${CORE_IM_ADD} >> conf/local.conf       
+else
+        echo "${CORE_IM_ADD} already exists in the local.conf file"
+fi
 
 bitbake-layers show-layers | grep "meta-raspberrypi" > /dev/null
 layer_info=$?
@@ -111,6 +147,12 @@ layer_metaoe_info=$?
 
 bitbake-layers show-layers | grep "meta-networking" > /dev/null
 layer_networking_info=$?
+
+bitbake-layers show-layers | grep "meta-i2c" > /dev/null
+layer_i2c_info=$?
+
+#bitbake-layers show-layers | grep "meta-wlan0" > /dev/null
+#layer_wlan0_info=$?
 
 if [ $layer_metaoe_info -ne 0 ];then
     echo "Adding meta-oe layer"
@@ -143,5 +185,21 @@ else
 	echo "layer meta-raspberrypi already exists"
 fi
 
+if [ $layer_i2c_info -ne 0 ];then
+        echo "Adding meta-I2C layer"
+        bitbake-layers add-layer ../meta-i2c
+else
+        echo "meta-i2c layer already exists"
+fi
+
+
+#if [ $layer_wlan0_info -ne 0 ];then
+#        echo "Adding meta-wlan0 layer"
+#        bitbake-layers add-layer ../meta-wlan0
+#else
+#        echo "meta-wlan0 layer already exists"
+#fi
+
 set -e
+
 bitbake core-image-base
