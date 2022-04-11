@@ -26,7 +26,6 @@ TARGET_LDFLAGS += "-lrt"
 do_configure () {
 	:
 }
-
 do_compile () {
 	oe_runmake
 }
