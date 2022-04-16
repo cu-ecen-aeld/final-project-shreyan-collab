@@ -20,20 +20,22 @@ MEMORY="GPU_MEM = \"16\""
 #Add wifi support
 DISTRO_F="DISTRO_FEATURES:append = \"wifi\""
 #add firmware support 
-IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools\""
+IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools spitools libgpiod libgpiod-tools libgpiod-dev gdb gdbserver\""
 
 #Licence
 LICENCE="LICENSE_FLAGS_ACCEPTED  = \"commercial\""
 
-IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh\""
+IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug\""
 
 #I2C
 MODULE_I2C="ENABLE_I2C = \"1\""
+MODULE_SPI="ENABLE_SPI_BUS = \"1\""
 
 AUTOLOAD_I2C="KERNEL_MODULE_AUTOLOAD:rpi += \"i2c-dev i2c-bcm2708\""
+AUTOLOAD_SPI="KERNEL_MODULE_AUTOLOAD:rpi += \"spidev\""
 
 #Extra packages
-CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config server-config client-config\""
+CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config server-config client-config gpio-config\""
 
 cat conf/local.conf | grep "${CONFLINE}" > /dev/null
 local_conf_info=$?
@@ -59,8 +61,14 @@ local_imgf_info=$?
 cat conf/local.conf | grep "${MODULE_I2C}" > /dev/null
 local_i2c_info=$?
 
+cat conf/local.conf | grep "${MODULE_SPI}" > /dev/null
+local_spi_info=$?
+
 cat conf/local.conf | grep "${AUTOLOAD_I2C}" > /dev/null
 local_i2c_autoload_info=$?
+
+cat conf/local.conf | grep "${AUTOLOAD_SPI}" > /dev/null
+local_spi_autoload_info=$?
 
 cat conf/local.conf | grep "${CORE_IM_ADD}" > /dev/null
 local_coreimadd_info=$?
@@ -127,6 +135,20 @@ if [ $local_i2c_autoload_info -ne 0 ];then
         echo ${AUTOLOAD_I2C} >> conf/local.conf
 else
         echo "${AUTOLOAD_I2C} already exists in the local.conf file"
+fi
+
+if [ $local_spi_info -ne 0 ];then
+        echo "Append ${MODULE_SPI} in the local.conf file"
+        echo ${MODULE_SPI} >> conf/local.conf
+else
+        echo "${MODULE_SPI} already exists in the local.conf file"
+fi
+
+if [ $local_spi_autoload_info -ne 0 ];then
+        echo "Append ${AUTOLOAD_SPI} in the local.conf file"
+        echo ${AUTOLOAD_SPI} >> conf/local.conf
+else
+        echo "${AUTOLOAD_SPI} already exists in the local.conf file"
 fi
 
 if [ $local_coreimadd_info -ne 0 ];then
@@ -209,6 +231,16 @@ if [ $layer_client_info -ne 0 ];then
         bitbake-layers add-layer ../meta-client
 else
         echo "meta-client layer already exists"
+fi
+
+bitbake-layers show-layers | grep "meta-gpio" > /dev/null
+layer_info=$?
+
+if [ $layer_info -ne 0 ];then
+	echo "Adding meta-gpio layer"
+	bitbake-layers add-layer ../meta-gpio
+else
+	echo "meta-gpio layer already exists"
 fi
 
 set -e
