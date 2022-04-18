@@ -20,12 +20,16 @@ MEMORY="GPU_MEM = \"16\""
 #Add wifi support
 DISTRO_F="DISTRO_FEATURES:append = \"wifi\""
 #add firmware support 
-IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools spitools libgpiod libgpiod-tools libgpiod-dev gdb gdbserver\""
+IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools spitools libgpiod libgpiod-tools libgpiod-dev gdb gdbserver valgrind\""
 
 #Licence
 LICENCE="LICENSE_FLAGS_ACCEPTED  = \"commercial\""
+IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug tools-profile eclipse-debug\""
+#IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug src-pkgs dbg-pkgs\""
 
-IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug\""
+#spi - spitools
+#gdb gdbserver - gdb tools-debug 
+#src-pkgs dbg-pkgs- Adavnce gdb 
 
 #I2C
 MODULE_I2C="ENABLE_I2C = \"1\""
@@ -35,7 +39,7 @@ AUTOLOAD_I2C="KERNEL_MODULE_AUTOLOAD:rpi += \"i2c-dev i2c-bcm2708\""
 AUTOLOAD_SPI="KERNEL_MODULE_AUTOLOAD:rpi += \"spidev\""
 
 #Extra packages
-CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config server-config client-config gpio-config\""
+CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config server-config client-config gpio-config spi-config\""
 
 cat conf/local.conf | grep "${CONFLINE}" > /dev/null
 local_conf_info=$?
@@ -180,6 +184,9 @@ layer_server_info=$?
 bitbake-layers show-layers | grep "meta-client" > /dev/null
 layer_client_info=$?
 
+bitbake-layers show-layers | grep "meta-spi" > /dev/null
+layer_spi_info=$?
+
 if [ $layer_metaoe_info -ne 0 ];then
     echo "Adding meta-oe layer"
 	bitbake-layers add-layer ../meta-openembedded/meta-oe
@@ -231,6 +238,13 @@ if [ $layer_client_info -ne 0 ];then
         bitbake-layers add-layer ../meta-client
 else
         echo "meta-client layer already exists"
+fi
+
+if [ $layer_spi_info -ne 0 ];then
+        echo "Adding meta-spi layer"
+        bitbake-layers add-layer ../meta-spi
+else
+        echo "meta-spi layer already exists"
 fi
 
 bitbake-layers show-layers | grep "meta-gpio" > /dev/null
