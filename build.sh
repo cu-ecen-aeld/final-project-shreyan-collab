@@ -18,9 +18,9 @@ IMAGE="IMAGE_FSTYPES = \"wic.bz2\""
 MEMORY="GPU_MEM = \"16\""
 
 #Add wifi support
-DISTRO_F="DISTRO_FEATURES:append = \"wifi\""
+DISTRO_F="DISTRO_FEATURES:append = \"wifi bluetooth\""
 #add firmware support 
-IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools spitools libgpiod libgpiod-tools libgpiod-dev gdb gdbserver valgrind\""
+IMAGE_ADD="IMAGE_INSTALL:append = \"linux-firmware-rpidistro-bcm43430 v4l-utils python3 ntp wpa-supplicant i2c-tools spitools libgpiod libgpiod-tools libgpiod-dev gdb gdbserver valgrind can-utils iproute2 obexftp bluez5\""
 
 #Licence
 LICENCE="LICENSE_FLAGS_ACCEPTED  = \"commercial\""
@@ -34,12 +34,15 @@ IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug tools-profile eclips
 #I2C
 MODULE_I2C="ENABLE_I2C = \"1\""
 MODULE_SPI="ENABLE_SPI_BUS = \"1\""
+MODULE_CAN="ENABLE_CAN = \"1\""
 
 AUTOLOAD_I2C="KERNEL_MODULE_AUTOLOAD:rpi += \"i2c-dev i2c-bcm2708\""
 AUTOLOAD_SPI="KERNEL_MODULE_AUTOLOAD:rpi += \"spidev\""
+AUTOLOAD_CAN="KERNEL_MODULE_AUTOLOAD:rpi += \"mcp251x flexcan\""
 
 #Extra packages
 CORE_IM_ADD="CORE_IMAGE_EXTRA_INSTALL += \"i2c-config server-config client-config gpio-config spi-config\""
+CAN_OSCILLATOR_CONFIG="CAN_OSCILLATOR = \"8000000\""
 
 cat conf/local.conf | grep "${CONFLINE}" > /dev/null
 local_conf_info=$?
@@ -68,14 +71,25 @@ local_i2c_info=$?
 cat conf/local.conf | grep "${MODULE_SPI}" > /dev/null
 local_spi_info=$?
 
+cat conf/local.conf | grep "${MODULE_CAN}" > /dev/null
+local_can_info=$?
+
 cat conf/local.conf | grep "${AUTOLOAD_I2C}" > /dev/null
 local_i2c_autoload_info=$?
 
 cat conf/local.conf | grep "${AUTOLOAD_SPI}" > /dev/null
 local_spi_autoload_info=$?
 
+cat conf/local.conf | grep "${AUTOLOAD_CAN}" > /dev/null
+local_can_autoload_info=$?
+
+cat conf/local.conf | grep "${CAN_OSCILLATOR_CONFIG}" > /dev/null
+local_can_oscillator_info=$?
+
 cat conf/local.conf | grep "${CORE_IM_ADD}" > /dev/null
 local_coreimadd_info=$?
+
+
 
 if [ $local_conf_info -ne 0 ];then
 	echo "Append ${CONFLINE} in the local.conf file"
@@ -141,6 +155,7 @@ else
         echo "${AUTOLOAD_I2C} already exists in the local.conf file"
 fi
 
+
 if [ $local_spi_info -ne 0 ];then
         echo "Append ${MODULE_SPI} in the local.conf file"
         echo ${MODULE_SPI} >> conf/local.conf
@@ -153,6 +168,29 @@ if [ $local_spi_autoload_info -ne 0 ];then
         echo ${AUTOLOAD_SPI} >> conf/local.conf
 else
         echo "${AUTOLOAD_SPI} already exists in the local.conf file"
+fi
+
+if [ $local_can_info -ne 0 ];then
+        echo "Append ${MODULE_CAN} in the local.conf file"
+        echo ${MODULE_CAN} >> conf/local.conf
+else
+        echo "${MODULE_CAN} already exists in the local.conf file"
+fi
+
+if [ $local_can_autoload_info -ne 0 ];then
+        echo "Append ${AUTOLOAD_CAN} in the local.conf file"
+        echo ${AUTOLOAD_CAN} >> conf/local.conf
+        
+else
+        echo "${AUTOLOAD_CAN} already exists in the local.conf file"
+fi
+
+if [ $local_can_oscillator_info -ne 0 ];then
+        echo "Append ${CAN_OSCILLATOR_CONFIG} in the local.conf file"
+        echo ${CAN_OSCILLATOR_CONFIG} >> conf/local.conf
+        
+else
+        echo ${CAN_OSCILLATOR_CONFIG}  already exists in the local.conf file"
 fi
 
 if [ $local_coreimadd_info -ne 0 ];then
@@ -255,7 +293,7 @@ if [ $layer_info -ne 0 ];then
 	bitbake-layers add-layer ../meta-gpio
 else
 	echo "meta-gpio layer already exists"
-fi
+fi 
 
 set -e
 
