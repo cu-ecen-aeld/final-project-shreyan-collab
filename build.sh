@@ -190,7 +190,7 @@ if [ $local_can_oscillator_info -ne 0 ];then
         echo ${CAN_OSCILLATOR_CONFIG} >> conf/local.conf
         
 else
-        echo ${CAN_OSCILLATOR_CONFIG}  already exists in the local.conf file"
+        echo "${CAN_OSCILLATOR_CONFIG} already exists in the local.conf file"
 fi
 
 if [ $local_coreimadd_info -ne 0 ];then
