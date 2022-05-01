@@ -27,9 +27,10 @@ LICENCE="LICENSE_FLAGS_ACCEPTED  = \"commercial\""
 IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug tools-profile eclipse-debug\""
 #IMAGE_F="IMAGE_FEATURES += \"ssh-server-openssh tools-debug src-pkgs dbg-pkgs\""
 
-#spi - spitools
-#gdb gdbserver - gdb tools-debug 
-#src-pkgs dbg-pkgs- Adavnce gdb 
+#for Spi
+#spi - add "spitools"
+#gdb - add "gdb tools-debug" 
+#valgrind, gdbserver-add "gdbserver src-pkgs dbg-pkgs tools-debug eclipse-debug" 
 
 #I2C
 MODULE_I2C="ENABLE_I2C = \"1\""
